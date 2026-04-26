@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Environment secrets
+backend/.env
+backend/.env.*
+frontend/.env
+frontend/.env.*
+
+# Rails secrets
+backend/config/master.key
+backend/config/credentials.yml.enc
+
+# Rails runtime
+backend/log/
+backend/tmp/
+backend/storage/
+backend/.bundle/
+
+# Vite build output
+frontend/dist/
+
+# OS
+.DS_Store
+Thumbs.db
