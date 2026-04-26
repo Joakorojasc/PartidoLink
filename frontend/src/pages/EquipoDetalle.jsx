@@ -86,16 +86,28 @@ export default function EquipoDetalle() {
             </div>
           </div>
 
-          {!isMember && team.is_open && !joined && (
-            <button onClick={handleJoin} disabled={joining} className="btn-primary" style={{ opacity: joining ? 0.6 : 1 }}>
-              <Users size={14} /> {joining ? 'Uniéndose…' : 'Unirse al equipo'}
-            </button>
-          )}
-          {joined && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#84cc16', fontSize: 14 }}>
-              <CheckCircle size={16} /> ¡Te uniste!
-            </div>
-          )}
+          <div style={{ display: 'flex', gap: '0.625rem', flexWrap: 'wrap' }}>
+            {user && !isMember && (
+              <Link
+                to={`/partidos/nuevo?opponent=${id}`}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '0.75rem', padding: '0.625rem 1.25rem', color: 'rgba(255,255,255,0.8)', fontSize: 13, fontWeight: 600, textDecoration: 'none', transition: 'background 0.15s, border-color 0.15s' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)' }}
+              >
+                <Swords size={14} /> Desafiar equipo
+              </Link>
+            )}
+            {!isMember && team.is_open && !joined && (
+              <button onClick={handleJoin} disabled={joining} className="btn-primary" style={{ opacity: joining ? 0.6 : 1 }}>
+                <Users size={14} /> {joining ? 'Uniéndose…' : 'Unirse al equipo'}
+              </button>
+            )}
+            {joined && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#84cc16', fontSize: 14 }}>
+                <CheckCircle size={16} /> ¡Te uniste!
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Record */}

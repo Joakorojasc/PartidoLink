@@ -18,6 +18,7 @@ import MensajeDetalle from './pages/MensajeDetalle'
 import Perfil from './pages/Perfil'
 import PerfilPublico from './pages/PerfilPublico'
 import NuevoPartido from './pages/NuevoPartido'
+import Mapa from './pages/Mapa'
 import PrivateRoute from './components/PrivateRoute'
 
 export default function App() {
@@ -42,6 +43,7 @@ export default function App() {
         <Route path="/equipos/:id" element={<EquipoDetalle />} />
         <Route path="/canchas" element={<Canchas />} />
         <Route path="/canchas/:id" element={<CanchaDetalle />} />
+        <Route path="/mapa" element={<Mapa />} />
         <Route path="/perfil/:id" element={<PerfilPublico />} />
 
         {/* Private */}

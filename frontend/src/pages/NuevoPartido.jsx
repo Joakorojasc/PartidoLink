@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { ArrowLeft, Trophy, Users, AlertCircle, CheckCircle, Target } from 'lucide-react'
 import AppLayout from '../components/AppLayout'
 import api from '../api/client'
@@ -36,6 +36,8 @@ function Field({ label, hint, children }) {
 
 export default function NuevoPartido() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const prefilledOpponent = searchParams.get('opponent')
   const { user, fetchMe } = useAuthStore()
   const [allTeams, setAllTeams] = useState([])
   const [sports, setSports] = useState([])
@@ -64,19 +66,27 @@ export default function NuevoPartido() {
     }).catch(() => setPageLoading(false))
   }, [])
 
-  // Auto-select if user has exactly one team
+  // Auto-select if user has exactly one team, and pre-fill opponent from URL
   useEffect(() => {
     if (!user?.teams?.length || !allTeams.length) return
-    if (user.teams.length === 1) {
-      const full = allTeams.find(t => t.id === user.teams[0].id)
-      if (full) {
-        setForm(f => ({
-          ...f,
-          home_team_id: String(full.id),
-          sport_id: full.sport?.id ? String(full.sport.id) : f.sport_id,
-        }))
+    setForm(f => {
+      let next = { ...f }
+      if (user.teams.length === 1) {
+        const full = allTeams.find(t => t.id === user.teams[0].id)
+        if (full) {
+          next.home_team_id = String(full.id)
+          if (full.sport?.id) next.sport_id = String(full.sport.id)
+        }
       }
-    }
+      if (prefilledOpponent) {
+        const opp = allTeams.find(t => t.id === parseInt(prefilledOpponent))
+        if (opp) {
+          next.away_team_id = String(opp.id)
+          next.is_open = false
+        }
+      }
+      return next
+    })
   }, [user?.teams?.length, allTeams.length])
 
   const setF = (k, v) => setForm(f => ({ ...f, [k]: v }))

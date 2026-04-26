@@ -1,12 +1,13 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Home, Users, MapPin, Trophy, MessageCircle, User, LogOut, Zap, ChevronRight, X } from 'lucide-react'
+import { Home, Users, MapPin, Trophy, MessageCircle, User, LogOut, Zap, ChevronRight, X, Map } from 'lucide-react'
 import useAuthStore from '../stores/authStore'
 
 const navItems = [
   { to: '/dashboard', icon: Home,          label: 'Inicio' },
   { to: '/equipos',   icon: Users,         label: 'Equipos' },
-  { to: '/canchas',   icon: MapPin,        label: 'Canchas' },
   { to: '/partidos',  icon: Trophy,        label: 'Partidos' },
+  { to: '/mapa',      icon: Map,           label: 'Mapa de canchas' },
+  { to: '/canchas',   icon: MapPin,        label: 'Canchas' },
   { to: '/mensajes',  icon: MessageCircle, label: 'Mensajes' },
   { to: '/perfil',    icon: User,          label: 'Mi Perfil' },
 ]

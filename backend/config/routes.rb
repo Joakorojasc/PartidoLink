@@ -17,7 +17,9 @@ Rails.application.routes.draw do
 
       resources :users, only: [:show, :update] do
         member do
-          get :sports
+          get    :sports
+          post   :sports, action: :add_sport
+          delete :sports, action: :remove_sport
         end
       end
 
