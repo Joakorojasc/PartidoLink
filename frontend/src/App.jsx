@@ -17,6 +17,7 @@ import Mensajes from './pages/Mensajes'
 import MensajeDetalle from './pages/MensajeDetalle'
 import Perfil from './pages/Perfil'
 import PerfilPublico from './pages/PerfilPublico'
+import NuevoPartido from './pages/NuevoPartido'
 import PrivateRoute from './components/PrivateRoute'
 
 export default function App() {
@@ -46,6 +47,7 @@ export default function App() {
         {/* Private */}
         <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
         <Route path="/equipos/nuevo" element={<PrivateRoute><NuevoEquipo /></PrivateRoute>} />
+        <Route path="/partidos/nuevo" element={<PrivateRoute><NuevoPartido /></PrivateRoute>} />
         <Route path="/mensajes" element={<PrivateRoute><Mensajes /></PrivateRoute>} />
         <Route path="/mensajes/:id" element={<PrivateRoute><MensajeDetalle /></PrivateRoute>} />
         <Route path="/perfil" element={<PrivateRoute><Perfil /></PrivateRoute>} />

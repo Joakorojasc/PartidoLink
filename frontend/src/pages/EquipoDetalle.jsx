@@ -158,7 +158,7 @@ export default function EquipoDetalle() {
                     >
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <p style={{ color: '#fff', fontSize: 13, fontWeight: 500, marginBottom: '0.125rem' }}>
-                          {m.home_team?.name} <span style={{ color: 'rgba(255,255,255,0.3)' }}>vs</span> {m.away_team?.name}
+                          {m.home_team?.name} <span style={{ color: 'rgba(255,255,255,0.3)' }}>vs</span> {m.away_team?.name || <span style={{ color: 'rgba(255,255,255,0.25)', fontStyle: 'italic' }}>Por definir</span>}
                         </p>
                         <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11 }}>{formatDate(m.scheduled_at)} · {m.sport?.name}</p>
                       </div>

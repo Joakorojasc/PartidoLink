@@ -12,9 +12,9 @@ function formatDate(dt) {
 }
 
 const quickActions = [
-  { to: '/partidos', icon: Trophy,   label: 'Buscar Rival',    sub: 'Matchmaking abierto',  accent: true },
-  { to: '/equipos/nuevo', icon: Users, label: 'Crear Equipo', sub: 'Sé el capitán',         accent: false },
-  { to: '/canchas',  icon: MapPin,   label: 'Ver Canchas',     sub: 'Santiago y alrededores', accent: false },
+  { to: '/partidos/nuevo', icon: Trophy,  label: 'Crear Partido',   sub: 'Busca rival ahora',      accent: true },
+  { to: '/equipos/nuevo',  icon: Users,   label: 'Crear Equipo',    sub: 'Sé el capitán',          accent: false },
+  { to: '/canchas',        icon: MapPin,  label: 'Ver Canchas',     sub: 'Santiago y alrededores', accent: false },
 ]
 
 function SkeletonRow() {
@@ -114,7 +114,7 @@ export default function Dashboard() {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p style={{ color: '#fff', fontSize: 13, fontWeight: 500, marginBottom: '0.125rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {m.home_team?.name} <span style={{ color: 'rgba(255,255,255,0.3)' }}>vs</span> {m.away_team?.name}
+                        {m.home_team?.name} <span style={{ color: 'rgba(255,255,255,0.3)' }}>vs</span> {m.away_team?.name || <span style={{ color: 'rgba(255,255,255,0.25)', fontStyle: 'italic' }}>Buscando rival…</span>}
                       </p>
                       <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11 }}>
                         {m.commune} · {formatDate(m.scheduled_at)}

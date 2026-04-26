@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..800;1,14..32,300..800&display=swap');
 @import "tailwindcss";
 
-/* ─── Design tokens ─────────────────────────────────────── */
+/* ─── Design tokens ───────────────────��─────────────────── */
 :root {
   --sidebar-w: 256px;
   --green:     #14532d;
@@ -12,7 +12,7 @@
   --border:    rgba(255,255,255,0.06);
 }
 
-/* ─── Reset ──────────────────────────────────────────────── */
+/* ─── Reset ───────────────────────────���──────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html { scroll-behavior: smooth; }
@@ -27,7 +27,7 @@ body {
 
 #root { min-height: 100vh; }
 
-/* ─── Layout helpers ─────────────────────────────────────── */
+/* ─── Layout helpers ─────────────────��───────────────────── */
 .app-shell {
   display: flex;
   min-height: 100vh;
@@ -45,15 +45,70 @@ body {
   flex-direction: column;
   z-index: 50;
   overflow-y: auto;
+  transition: left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .main-content {
   flex: 1;
   min-width: 0;
   margin-left: var(--sidebar-w);
-  padding: 2rem;
   background: #0f0f0f;
   min-height: 100vh;
+}
+
+.page-content {
+  padding: 2rem;
+}
+
+/* ─── Mobile top bar ───���──────────────────────────���──────── */
+.mobile-topbar {
+  display: none;
+}
+
+.hamburger-btn {
+  width: 36px;
+  height: 36px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.7);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.hamburger-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+.mobile-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.sidebar-close-btn {
+  display: none;
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 30px;
+  height: 30px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 0.5rem;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: rgba(255,255,255,0.5);
+  transition: background 0.15s, color 0.15s;
+  z-index: 1;
+}
+.sidebar-close-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+.sidebar-overlay {
+  display: none;
 }
 
 /* ─── Card base ──────────────────────────────────────────── */
@@ -82,7 +137,12 @@ body {
 .input::placeholder { color: rgba(255,255,255,0.2); }
 .input:focus { border-color: rgba(132,204,22,0.5); }
 
-/* ─── Button variants ────────────────────────────────────── */
+/* ─── Dark selects ─────────────��─────────────────────────── */
+select, input[type="datetime-local"], input[type="date"] {
+  color-scheme: dark;
+}
+
+/* ─── Button variants ──────────────────────────��─────────── */
 .btn-primary {
   display: inline-flex;
   align-items: center;
@@ -124,20 +184,74 @@ body {
 .badge-disp   { background: rgba(239,68,68,0.12);  color: #f87171; }
 .badge-sched  { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); }
 
-/* ─── Animations ─────────────────────────────────────────── */
+/* ─── Animations ────────────────────────���────────────────── */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 .fade-up { animation: fadeUp 0.35s ease both; }
 
-@keyframes pulse-ring {
-  0%   { transform: scale(1);   opacity: 0.6; }
-  100% { transform: scale(1.8); opacity: 0;   }
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: 6px;
 }
 
-/* ─── Scrollbar ──────────────────────────────────────────── */
+/* ─── Scrollbar ─────────────────────────────���────────────── */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 99px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+/* ─── Mobile responsive ───────────────��──────────────────── */
+@media (max-width: 768px) {
+  .sidebar {
+    left: calc(-1 * var(--sidebar-w));
+    z-index: 100;
+    box-shadow: none;
+  }
+
+  .sidebar-mobile-open {
+    left: 0;
+    box-shadow: 8px 0 32px rgba(0,0,0,0.6);
+  }
+
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    z-index: 99;
+    backdrop-filter: blur(3px);
+  }
+
+  .sidebar-close-btn {
+    display: flex;
+  }
+
+  .main-content {
+    margin-left: 0 !important;
+    padding: 0;
+  }
+
+  .mobile-topbar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 40;
+  }
+
+  .page-content {
+    padding: 1.25rem 1rem 2rem;
+  }
+}

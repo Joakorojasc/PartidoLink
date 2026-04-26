@@ -1,6 +1,6 @@
 class Match < ApplicationRecord
   belongs_to :home_team, class_name: 'Team'
-  belongs_to :away_team, class_name: 'Team'
+  belongs_to :away_team, class_name: 'Team', optional: true
   belongs_to :sport
   belongs_to :venue, optional: true
   belongs_to :booking, optional: true

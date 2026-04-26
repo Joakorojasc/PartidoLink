@@ -115,7 +115,7 @@ module Api
           commune: m.commune,
           sport: { id: m.sport.id, name: m.sport.name },
           home_team: { id: m.home_team.id, name: m.home_team.name },
-          away_team: { id: m.away_team.id, name: m.away_team.name },
+          away_team: m.away_team ? { id: m.away_team.id, name: m.away_team.name } : nil,
           results: m.match_results.map { |r|
             { home_score: r.home_score, away_score: r.away_score, is_validated: r.is_validated }
           }

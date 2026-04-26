@@ -4,7 +4,7 @@ module Api
       skip_before_action :authenticate_user!, only: [:index, :show]
 
       def index
-        matches = Match.includes(:sport, :home_team, :away_team, :venue).open.recent
+        matches = Match.includes(:sport, :home_team, :away_team, :venue).where(status: 'scheduled').recent
         matches = matches.where(sport_id: params[:sport_id]) if params[:sport_id]
         matches = matches.where(commune: params[:commune]) if params[:commune]
 
@@ -21,7 +21,7 @@ module Api
             status: r.status,
             is_validated: r.is_validated,
             suspicious: r.suspicious,
-            submitted_by_team: { id: r.submitted_by_team_id }
+            submitted_by_team_id: r.submitted_by_team_id
           }
         end
 
@@ -40,19 +40,30 @@ module Api
 
       def challenge
         match = Match.find(params[:id])
-        challenger_team_id = params[:team_id]
+        challenger_team_id = params[:team_id].to_i
 
-        unless challenger_team_id
+        unless challenger_team_id.positive?
           return render json: { error: "Debes especificar tu equipo" }, status: :unprocessable_entity
+        end
+
+        if challenger_team_id == match.home_team_id
+          return render json: { error: "No puedes desafiarte a ti mismo" }, status: :unprocessable_entity
+        end
+
+        challenger_team = Team.find(challenger_team_id)
+
+        # If match is open and still seeking an opponent, claim the away slot
+        if match.away_team_id.nil? && match.is_open?
+          match.update!(away_team_id: challenger_team_id)
         end
 
         conversation = Conversation.create!(
           match: match,
-          title: "Desafío: #{match.home_team.name} vs #{Team.find(challenger_team_id).name}",
+          title: "Desafío: #{match.home_team.name} vs #{challenger_team.name}",
           conversation_type: 'match'
         )
         ConversationParticipant.create!(conversation: conversation, team: match.home_team)
-        ConversationParticipant.create!(conversation: conversation, team_id: challenger_team_id)
+        ConversationParticipant.create!(conversation: conversation, team: challenger_team)
 
         render json: { conversation_id: conversation.id, message: "Desafío enviado exitosamente" }, status: :created
       end
@@ -73,7 +84,7 @@ module Api
           commune: m.commune,
           sport: { id: m.sport.id, name: m.sport.name, icon: m.sport.icon },
           home_team: { id: m.home_team.id, name: m.home_team.name, avatar_url: m.home_team.avatar_url },
-          away_team: { id: m.away_team.id, name: m.away_team.name, avatar_url: m.away_team.avatar_url },
+          away_team: m.away_team ? { id: m.away_team.id, name: m.away_team.name, avatar_url: m.away_team.avatar_url } : nil,
           venue: m.venue ? { id: m.venue.id, name: m.venue.name, commune: m.venue.commune } : nil
         }
       end

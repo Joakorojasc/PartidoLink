@@ -1,31 +1,41 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Home, Users, MapPin, Trophy, MessageCircle, User, LogOut, Zap, ChevronRight } from 'lucide-react'
+import { Home, Users, MapPin, Trophy, MessageCircle, User, LogOut, Zap, ChevronRight, X } from 'lucide-react'
 import useAuthStore from '../stores/authStore'
 
 const navItems = [
-  { to: '/dashboard', icon: Home,         label: 'Inicio' },
-  { to: '/equipos',   icon: Users,        label: 'Equipos' },
-  { to: '/canchas',   icon: MapPin,       label: 'Canchas' },
-  { to: '/partidos',  icon: Trophy,       label: 'Partidos' },
-  { to: '/mensajes',  icon: MessageCircle,label: 'Mensajes' },
-  { to: '/perfil',    icon: User,         label: 'Mi Perfil' },
+  { to: '/dashboard', icon: Home,          label: 'Inicio' },
+  { to: '/equipos',   icon: Users,         label: 'Equipos' },
+  { to: '/canchas',   icon: MapPin,        label: 'Canchas' },
+  { to: '/partidos',  icon: Trophy,        label: 'Partidos' },
+  { to: '/mensajes',  icon: MessageCircle, label: 'Mensajes' },
+  { to: '/perfil',    icon: User,          label: 'Mi Perfil' },
 ]
 
-export default function Sidebar() {
+export default function Sidebar({ mobileOpen = false, onClose }) {
   const location = useLocation()
   const navigate = useNavigate()
   const { user, logout } = useAuthStore()
 
   const handleLogout = async () => {
     await logout()
+    onClose?.()
     navigate('/')
   }
 
+  const handleNavClick = () => {
+    onClose?.()
+  }
+
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar${mobileOpen ? ' sidebar-mobile-open' : ''}`}>
+      {/* Mobile close button */}
+      <button className="sidebar-close-btn" onClick={onClose} aria-label="Cerrar menú">
+        <X size={16} />
+      </button>
+
       {/* Logo */}
       <div style={{ padding: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <Link to="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', textDecoration: 'none' }}>
+        <Link to="/dashboard" onClick={handleNavClick} style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', textDecoration: 'none' }}>
           <div style={{
             width: 34, height: 34,
             background: '#84cc16',
@@ -53,6 +63,7 @@ export default function Sidebar() {
             <Link
               key={to}
               to={to}
+              onClick={handleNavClick}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -91,7 +102,7 @@ export default function Sidebar() {
       {/* User footer */}
       {user && (
         <div style={{ padding: '0.875rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-          <Link to="/perfil" style={{
+          <Link to="/perfil" onClick={handleNavClick} style={{
             display: 'flex',
             alignItems: 'center',
             gap: '0.625rem',

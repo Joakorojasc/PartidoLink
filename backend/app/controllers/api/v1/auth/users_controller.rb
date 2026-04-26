@@ -17,7 +17,7 @@ module Api
             phone: user.phone,
             bio: user.bio,
             avatar_url: user.avatar_url,
-            teams: user.teams.map { |t| { id: t.id, name: t.name } },
+            teams: user.teams.includes(:sport).map { |t| { id: t.id, name: t.name, sport: { id: t.sport.id, name: t.sport.name, icon: t.sport.icon } } },
             sports: user.user_sports.includes(:sport).map { |us|
               { sport: { id: us.sport.id, name: us.sport.name }, skill_level: us.skill_level }
             }
