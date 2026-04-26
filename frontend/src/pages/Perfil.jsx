@@ -1,12 +1,23 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Edit2, Save, X } from 'lucide-react'
+import { Edit2, Save, X, User, Phone, FileText, Trophy } from 'lucide-react'
 import AppLayout from '../components/AppLayout'
 import useAuthStore from '../stores/authStore'
 import api from '../api/client'
 
 const skillLabels = { beginner: 'Principiante', intermediate: 'Intermedio', advanced: 'Avanzado', pro: 'Profesional' }
-const skillColors = { beginner: 'bg-white/10 text-white/60', intermediate: 'bg-blue-900/30 text-blue-400', advanced: 'bg-[#14532d]/50 text-[#84cc16]', pro: 'bg-yellow-900/30 text-yellow-400' }
+const skillColors = {
+  beginner:     { bg: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.5)' },
+  intermediate: { bg: 'rgba(59,130,246,0.12)', color: '#60a5fa' },
+  advanced:     { bg: 'rgba(132,204,22,0.12)', color: '#84cc16' },
+  pro:          { bg: 'rgba(234,179,8,0.12)',  color: '#facc15' },
+}
+
+const inputStyle = {
+  width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+  borderRadius: '0.5rem', padding: '0.625rem 0.875rem', color: '#fff', fontSize: 14,
+  outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s',
+}
 
 export default function Perfil() {
   const { user, fetchMe, updateProfile } = useAuthStore()
@@ -15,9 +26,7 @@ export default function Perfil() {
   const [sports, setSports] = useState([])
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => {
-    fetchMe()
-  }, [])
+  useEffect(() => { fetchMe() }, [])
 
   useEffect(() => {
     if (user) {
@@ -35,123 +44,183 @@ export default function Perfil() {
     setEditing(false)
   }
 
-  if (!user) return <AppLayout><div className="text-white/40 text-center py-20">Cargando...</div></AppLayout>
+  if (!user) return (
+    <AppLayout>
+      <div style={{ textAlign: 'center', padding: '5rem', color: 'rgba(255,255,255,0.3)' }}>Cargando perfil…</div>
+    </AppLayout>
+  )
 
   return (
     <AppLayout>
-      <div className="max-w-2xl">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-white">Mi perfil</h1>
-          {!editing ? (
-            <button onClick={() => setEditing(true)}
-              className="flex items-center gap-2 border border-white/15 text-white/70 px-4 py-2 rounded-lg text-sm hover:bg-white/5 transition-colors"
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <h1 style={{ fontSize: 26, fontWeight: 700, color: '#fff', letterSpacing: '-0.5px', marginBottom: '0.25rem' }}>Mi perfil</h1>
+          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 14 }}>Gestiona tu información personal</p>
+        </div>
+
+        {!editing ? (
+          <button
+            onClick={() => setEditing(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '0.625rem', padding: '0.625rem 1rem', color: 'rgba(255,255,255,0.7)', fontSize: 13, cursor: 'pointer', transition: 'background 0.15s, border-color 0.15s' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.09)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)' }}
+          >
+            <Edit2 size={14} /> Editar perfil
+          </button>
+        ) : (
+          <div style={{ display: 'flex', gap: '0.625rem' }}>
+            <button
+              onClick={() => setEditing(false)}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.625rem', padding: '0.625rem 1rem', color: 'rgba(255,255,255,0.5)', fontSize: 13, cursor: 'pointer', transition: 'background 0.15s' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
-              <Edit2 size={14} /> Editar
+              <X size={14} /> Cancelar
             </button>
-          ) : (
-            <div className="flex gap-2">
-              <button onClick={() => setEditing(false)}
-                className="flex items-center gap-2 border border-white/15 text-white/50 px-4 py-2 rounded-lg text-sm hover:bg-white/5 transition-colors"
-              >
-                <X size={14} /> Cancelar
-              </button>
-              <button onClick={handleSave} disabled={saving}
-                className="flex items-center gap-2 bg-[#84cc16] text-[#14532d] px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#a3e635] transition-colors disabled:opacity-50"
-              >
-                <Save size={14} /> {saving ? 'Guardando...' : 'Guardar'}
-              </button>
-            </div>
-          )}
-        </div>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="btn-primary"
+              style={{ opacity: saving ? 0.6 : 1 }}
+            >
+              <Save size={14} /> {saving ? 'Guardando…' : 'Guardar'}
+            </button>
+          </div>
+        )}
+      </div>
 
-        {/* Profile card */}
-        <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-8 mb-6">
-          <div className="flex items-start gap-5 mb-6">
-            <div className="w-20 h-20 bg-[#14532d] rounded-2xl flex items-center justify-center text-[#84cc16] font-bold text-3xl flex-shrink-0">
-              {user.name?.charAt(0)}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '1.25rem', alignItems: 'start', maxWidth: 860 }}>
+        {/* Main profile card */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          <div className="card" style={{ padding: '2rem' }}>
+            {/* Avatar + name */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.25rem', marginBottom: '1.75rem' }}>
+              <div style={{ width: 72, height: 72, borderRadius: '1rem', background: 'linear-gradient(135deg,#14532d,#166534)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#84cc16', fontWeight: 800, fontSize: 28, flexShrink: 0 }}>
+                {user.name?.charAt(0)}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                {editing ? (
+                  <input
+                    value={form.name}
+                    onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                    style={{ ...inputStyle, fontSize: 18, fontWeight: 700, marginBottom: '0.5rem' }}
+                    onFocus={e => e.target.style.borderColor = 'rgba(132,204,22,0.5)'}
+                    onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+                  />
+                ) : (
+                  <h2 style={{ color: '#fff', fontWeight: 700, fontSize: 20, marginBottom: '0.375rem' }}>{user.name}</h2>
+                )}
+                <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13 }}>{user.email}</p>
+                <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 12, marginTop: '0.125rem' }}>{user.rut}</p>
+              </div>
             </div>
-            <div className="flex-1">
-              {editing ? (
-                <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                  className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-3 py-2 text-lg font-bold focus:outline-none focus:border-[#84cc16]/50 mb-2"
-                />
-              ) : (
-                <h2 className="text-2xl font-bold text-white mb-1">{user.name}</h2>
-              )}
-              <p className="text-white/40 text-sm">{user.email}</p>
-              <p className="text-white/30 text-sm mt-1">{user.rut}</p>
+
+            {/* Fields */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              {/* Phone */}
+              <div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', color: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
+                  <Phone size={11} /> Teléfono
+                </label>
+                {editing ? (
+                  <input
+                    value={form.phone}
+                    onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+                    placeholder="+56 9 12345678"
+                    style={inputStyle}
+                    onFocus={e => e.target.style.borderColor = 'rgba(132,204,22,0.5)'}
+                    onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+                  />
+                ) : (
+                  <p style={{ color: user.phone ? '#fff' : 'rgba(255,255,255,0.2)', fontSize: 14 }}>
+                    {user.phone || 'No especificado'}
+                  </p>
+                )}
+              </div>
+
+              {/* Bio */}
+              <div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', color: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
+                  <FileText size={11} /> Biografía
+                </label>
+                {editing ? (
+                  <textarea
+                    value={form.bio}
+                    onChange={e => setForm(f => ({ ...f, bio: e.target.value }))}
+                    placeholder="Cuéntanos sobre ti, tu posición favorita, nivel de juego…"
+                    rows={4}
+                    style={{ ...inputStyle, resize: 'none', lineHeight: 1.6 }}
+                    onFocus={e => e.target.style.borderColor = 'rgba(132,204,22,0.5)'}
+                    onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+                  />
+                ) : (
+                  <p style={{ color: user.bio ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.2)', fontSize: 14, lineHeight: 1.6 }}>
+                    {user.bio || 'Sin bio aún'}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div>
-              <label className="block text-white/50 text-xs mb-1.5 uppercase tracking-wide">Teléfono</label>
-              {editing ? (
-                <input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
-                  placeholder="+56 9 12345678"
-                  className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#84cc16]/50"
-                />
-              ) : (
-                <p className="text-white text-sm">{user.phone || <span className="text-white/25">No especificado</span>}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-white/50 text-xs mb-1.5 uppercase tracking-wide">Bio</label>
-              {editing ? (
-                <textarea value={form.bio} onChange={e => setForm(f => ({ ...f, bio: e.target.value }))}
-                  placeholder="Cuéntanos sobre ti..."
-                  rows={3}
-                  className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#84cc16]/50 resize-none"
-                />
-              ) : (
-                <p className="text-white/70 text-sm">{user.bio || <span className="text-white/25">Sin bio</span>}</p>
-              )}
-            </div>
+          {/* Sports */}
+          <div className="card" style={{ padding: '1.5rem' }}>
+            <h2 style={{ color: '#fff', fontWeight: 600, fontSize: 15, marginBottom: '1rem' }}>Deportes practicados</h2>
+            {sports.length === 0 ? (
+              <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: 13 }}>Sin deportes registrados aún</p>
+            ) : (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                {sports.map(us => {
+                  const sc = skillColors[us.skill_level] || skillColors.beginner
+                  return (
+                    <div key={us.sport?.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '0.625rem', padding: '0.5rem 0.875rem' }}>
+                      <span style={{ fontSize: 16 }}>{us.sport?.icon}</span>
+                      <span style={{ color: '#fff', fontSize: 13 }}>{us.sport?.name}</span>
+                      <span style={{ background: sc.bg, color: sc.color, fontSize: 11, fontWeight: 600, padding: '0.15rem 0.5rem', borderRadius: 99 }}>
+                        {skillLabels[us.skill_level] || us.skill_level}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Sports */}
-        <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-6 mb-6">
-          <h2 className="text-white font-semibold mb-4">Deportes</h2>
-          {sports.length === 0 ? (
-            <p className="text-white/30 text-sm">Sin deportes registrados aún.</p>
-          ) : (
-            <div className="flex flex-wrap gap-2">
-              {sports.map(us => (
-                <div key={us.sport?.id} className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2">
-                  <span>{us.sport?.icon}</span>
-                  <span className="text-white text-sm">{us.sport?.name}</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${skillColors[us.skill_level]}`}>
-                    {skillLabels[us.skill_level]}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        {/* Sidebar: My teams */}
+        <div className="card" style={{ padding: '1.5rem' }}>
+          <h2 style={{ color: '#fff', fontWeight: 600, fontSize: 15, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Trophy size={14} color="#84cc16" /> Mis equipos
+          </h2>
 
-        {/* Teams */}
-        {user.teams?.length > 0 && (
-          <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-6">
-            <h2 className="text-white font-semibold mb-4">Mis equipos</h2>
-            <div className="space-y-3">
+          {!user.teams?.length ? (
+            <div style={{ textAlign: 'center', padding: '1.5rem 0' }}>
+              <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: 13, marginBottom: '0.875rem' }}>No perteneces a ningún equipo aún</p>
+              <Link to="/equipos/nuevo" className="btn-primary" style={{ fontSize: 13, padding: '0.5rem 1rem', justifyContent: 'center' }}>
+                Crear equipo
+              </Link>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
               {user.teams.map(t => (
-                <Link key={t.id} to={`/equipos/${t.id}`}
-                  className="flex items-center gap-3 p-3 bg-white/3 hover:bg-white/6 rounded-xl transition-colors"
-                >
-                  <div className="w-9 h-9 bg-[#14532d] rounded-lg flex items-center justify-center text-[#84cc16] font-bold text-sm">
-                    {t.name?.charAt(0)}
-                  </div>
-                  <div>
-                    <p className="text-white text-sm font-medium">{t.name}</p>
-                    {t.sport && <p className="text-white/40 text-xs">{t.sport}</p>}
+                <Link key={t.id} to={`/equipos/${t.id}`} style={{ textDecoration: 'none' }}>
+                  <div
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.625rem 0.5rem', borderRadius: '0.5rem', transition: 'background 0.15s' }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <div style={{ width: 34, height: 34, borderRadius: '0.5rem', background: 'linear-gradient(135deg,#14532d,#166534)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#84cc16', fontWeight: 700, fontSize: 14, flexShrink: 0 }}>
+                      {t.name?.charAt(0)}
+                    </div>
+                    <div>
+                      <p style={{ color: '#fff', fontSize: 13, fontWeight: 500 }}>{t.name}</p>
+                      {t.sport && <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>{t.sport}</p>}
+                    </div>
                   </div>
                 </Link>
               ))}
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </AppLayout>
   )

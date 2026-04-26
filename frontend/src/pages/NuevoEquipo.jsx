@@ -1,15 +1,33 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
+import { ArrowLeft, Users, AlertCircle, CheckCircle } from 'lucide-react'
 import AppLayout from '../components/AppLayout'
 import api from '../api/client'
 
-const communes = ['Providencia', 'Las Condes', 'Ñuñoa', 'Santiago Centro', 'Vitacura', 'La Florida', 'Macul', 'San Miguel', 'Peñalolén', 'Lo Barnechea']
+const communes = ['Providencia','Las Condes','Ñuñoa','Santiago Centro','Vitacura','La Florida','Macul','San Miguel','Peñalolén','Lo Barnechea']
+
+const inputStyle = {
+  width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+  borderRadius: '0.625rem', padding: '0.75rem 1rem', color: '#fff', fontSize: 14,
+  outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s',
+}
+
+function Field({ label, hint, children }) {
+  return (
+    <div>
+      <label style={{ display: 'block', color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: '0.5rem', fontWeight: 500 }}>{label}</label>
+      {children}
+      {hint && <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: 12, marginTop: '0.375rem' }}>{hint}</p>}
+    </div>
+  )
+}
 
 export default function NuevoEquipo() {
   const [form, setForm] = useState({ name: '', sport_id: '', description: '', commune: '', is_open: true })
   const [sports, setSports] = useState([])
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState([])
+  const [success, setSuccess] = useState(false)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -24,7 +42,8 @@ export default function NuevoEquipo() {
     setLoading(true)
     try {
       const res = await api.post('/teams', { team: form })
-      navigate(`/equipos/${res.data.id}`)
+      setSuccess(true)
+      setTimeout(() => navigate(`/equipos/${res.data.id}`), 800)
     } catch (err) {
       setErrors(err.response?.data?.errors || ['Error al crear el equipo'])
       setLoading(false)
@@ -33,61 +52,119 @@ export default function NuevoEquipo() {
 
   return (
     <AppLayout>
-      <div className="max-w-xl">
-        <h1 className="text-3xl font-bold text-white mb-2">Crear equipo</h1>
-        <p className="text-white/40 mb-8">Tú serás el capitán y podrás invitar miembros.</p>
+      <Link to="/equipos" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', color: 'rgba(255,255,255,0.35)', fontSize: 13, textDecoration: 'none', marginBottom: '1.5rem', transition: 'color 0.15s' }}
+        onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+        onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.35)'}
+      >
+        <ArrowLeft size={14} /> Volver a equipos
+      </Link>
 
-        <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-8">
+      <div style={{ maxWidth: 540 }}>
+        <div style={{ marginBottom: '2rem' }}>
+          <h1 style={{ fontSize: 26, fontWeight: 700, color: '#fff', letterSpacing: '-0.5px', marginBottom: '0.25rem' }}>Crear equipo</h1>
+          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 14 }}>Tú serás el capitán y podrás invitar miembros.</p>
+        </div>
+
+        <div className="card" style={{ padding: '2rem' }}>
+          {/* Error banner */}
           {errors.length > 0 && (
-            <div className="bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg p-3 mb-5 text-sm space-y-1">
-              {errors.map((e, i) => <div key={i}>{e}</div>)}
+            <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '0.625rem', padding: '0.875rem 1rem', marginBottom: '1.5rem', display: 'flex', gap: '0.625rem', alignItems: 'flex-start' }}>
+              <AlertCircle size={16} color="#f87171" style={{ flexShrink: 0, marginTop: 1 }} />
+              <div>
+                {errors.map((e, i) => (
+                  <p key={i} style={{ color: '#f87171', fontSize: 13, lineHeight: 1.5 }}>{e}</p>
+                ))}
+              </div>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-white/70 text-sm mb-1.5">Nombre del equipo</label>
-              <input value={form.name} onChange={e => set('name', e.target.value)} required
-                placeholder="Los Cóndores FC"
-                className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-4 py-3 text-sm placeholder-white/25 focus:outline-none focus:border-[#84cc16]/50"
-              />
+          {/* Success state */}
+          {success && (
+            <div style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: '0.625rem', padding: '0.875rem 1rem', marginBottom: '1.5rem', display: 'flex', gap: '0.625rem', alignItems: 'center' }}>
+              <CheckCircle size={16} color="#4ade80" />
+              <p style={{ color: '#4ade80', fontSize: 13 }}>¡Equipo creado! Redirigiendo…</p>
             </div>
-            <div>
-              <label className="block text-white/70 text-sm mb-1.5">Deporte</label>
-              <select value={form.sport_id} onChange={e => set('sport_id', e.target.value)} required
-                className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[#84cc16]/50"
+          )}
+
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            <Field label="Nombre del equipo" hint="Elige un nombre que represente a tu equipo">
+              <input
+                value={form.name}
+                onChange={e => set('name', e.target.value)}
+                required
+                placeholder="Los Cóndores FC"
+                style={inputStyle}
+                onFocus={e => e.target.style.borderColor = 'rgba(132,204,22,0.5)'}
+                onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+              />
+            </Field>
+
+            <Field label="Deporte">
+              <select
+                value={form.sport_id}
+                onChange={e => set('sport_id', e.target.value)}
+                required
+                style={{ ...inputStyle, cursor: 'pointer' }}
+                onFocus={e => e.target.style.borderColor = 'rgba(132,204,22,0.5)'}
+                onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
               >
                 <option value="">Selecciona un deporte</option>
                 {sports.map(s => <option key={s.id} value={s.id}>{s.icon} {s.name}</option>)}
               </select>
-            </div>
-            <div>
-              <label className="block text-white/70 text-sm mb-1.5">Comuna</label>
-              <select value={form.commune} onChange={e => set('commune', e.target.value)}
-                className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[#84cc16]/50"
+            </Field>
+
+            <Field label="Comuna">
+              <select
+                value={form.commune}
+                onChange={e => set('commune', e.target.value)}
+                style={{ ...inputStyle, cursor: 'pointer' }}
+                onFocus={e => e.target.style.borderColor = 'rgba(132,204,22,0.5)'}
+                onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
               >
-                <option value="">Selecciona una comuna</option>
+                <option value="">Selecciona una comuna (opcional)</option>
                 {communes.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
-            </div>
-            <div>
-              <label className="block text-white/70 text-sm mb-1.5">Descripción</label>
-              <textarea value={form.description} onChange={e => set('description', e.target.value)}
-                placeholder="Cuéntanos sobre tu equipo..."
+            </Field>
+
+            <Field label="Descripción" hint="Opcional — cuéntanos sobre tu equipo, nivel de juego, horarios, etc.">
+              <textarea
+                value={form.description}
+                onChange={e => set('description', e.target.value)}
+                placeholder="Equipo de fútbol 11 con experiencia en torneos amateur de Santiago…"
                 rows={3}
-                className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-4 py-3 text-sm placeholder-white/25 focus:outline-none focus:border-[#84cc16]/50 resize-none"
+                style={{ ...inputStyle, resize: 'none', lineHeight: 1.6 }}
+                onFocus={e => e.target.style.borderColor = 'rgba(132,204,22,0.5)'}
+                onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
               />
-            </div>
-            <div className="flex items-center gap-3">
-              <input type="checkbox" id="is_open" checked={form.is_open} onChange={e => set('is_open', e.target.checked)}
-                className="w-4 h-4 accent-[#84cc16]"
-              />
-              <label htmlFor="is_open" className="text-white/70 text-sm">Equipo abierto (acepta nuevos miembros)</label>
-            </div>
-            <button type="submit" disabled={loading}
-              className="w-full bg-[#84cc16] text-[#14532d] py-3 rounded-lg font-bold text-sm hover:bg-[#a3e635] transition-colors disabled:opacity-50"
+            </Field>
+
+            {/* Open toggle */}
+            <div
+              onClick={() => set('is_open', !form.is_open)}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', padding: '1rem', background: form.is_open ? 'rgba(132,204,22,0.06)' : 'rgba(255,255,255,0.03)', border: `1px solid ${form.is_open ? 'rgba(132,204,22,0.2)' : 'rgba(255,255,255,0.08)'}`, borderRadius: '0.625rem', cursor: 'pointer', transition: 'background 0.15s, border-color 0.15s' }}
             >
-              {loading ? 'Creando equipo...' : 'Crear equipo'}
+              {/* Toggle switch */}
+              <div style={{ width: 36, height: 20, background: form.is_open ? '#84cc16' : 'rgba(255,255,255,0.12)', borderRadius: 99, position: 'relative', flexShrink: 0, transition: 'background 0.2s' }}>
+                <div style={{ position: 'absolute', top: 3, left: form.is_open ? 19 : 3, width: 14, height: 14, background: '#fff', borderRadius: '50%', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
+              </div>
+              <div>
+                <p style={{ color: form.is_open ? '#84cc16' : 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: 600 }}>
+                  {form.is_open ? 'Equipo abierto' : 'Equipo cerrado'}
+                </p>
+                <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, marginTop: 2 }}>
+                  {form.is_open ? 'Cualquier jugador puede unirse' : 'Solo por invitación del capitán'}
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading || success}
+              className="btn-primary"
+              style={{ width: '100%', justifyContent: 'center', opacity: loading || success ? 0.7 : 1, marginTop: '0.5rem' }}
+            >
+              <Users size={15} />
+              {loading ? 'Creando equipo…' : success ? '¡Creado!' : 'Crear equipo'}
             </button>
           </form>
         </div>

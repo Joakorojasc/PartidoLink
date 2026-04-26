@@ -1,15 +1,70 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Trophy, MapPin, Calendar } from 'lucide-react'
+import { Trophy, MapPin, Calendar, Swords } from 'lucide-react'
 import AppLayout from '../components/AppLayout'
 import useMatchStore from '../stores/matchStore'
 import api from '../api/client'
 
-const communes = ['Providencia', 'Las Condes', 'Ñuñoa', 'Santiago Centro', 'Vitacura', 'La Florida', 'Macul', 'San Miguel']
+const communes = ['Providencia','Las Condes','Ñuñoa','Santiago Centro','Vitacura','La Florida','Macul','San Miguel']
 
 function formatDate(dt) {
   if (!dt) return 'Por confirmar'
   return new Date(dt).toLocaleDateString('es-CL', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+}
+
+function MatchCard({ match: m }) {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <Link to={`/partidos/${m.id}`} style={{ textDecoration: 'none' }}>
+      <div
+        className="card card-green"
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{ padding: '1.5rem', transition: 'transform 0.18s, border-color 0.18s', transform: hovered ? 'translateY(-3px)' : 'translateY(0)' }}
+      >
+        {/* Sport + badge */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ fontSize: 22 }}>{m.sport?.icon}</span>
+            <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, fontWeight: 500 }}>{m.sport?.name}</span>
+          </div>
+          <span className="badge-open" style={{ fontSize: 11, fontWeight: 600, padding: '0.25rem 0.625rem', borderRadius: 99 }}>
+            Abierto
+          </span>
+        </div>
+
+        {/* Teams VS */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ width: 38, height: 38, borderRadius: '0.625rem', background: 'linear-gradient(135deg,#14532d,#166534)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#84cc16', fontWeight: 700, fontSize: 15, marginBottom: '0.375rem' }}>
+              {m.home_team?.name?.charAt(0)}
+            </div>
+            <p style={{ color: '#fff', fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.home_team?.name}</p>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem', flexShrink: 0 }}>
+            <Swords size={14} color="rgba(255,255,255,0.25)" />
+            <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: 11, fontWeight: 700, letterSpacing: '1px' }}>VS</span>
+          </div>
+          <div style={{ flex: 1, minWidth: 0, textAlign: 'right' }}>
+            <div style={{ width: 38, height: 38, borderRadius: '0.625rem', background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.6)', fontWeight: 700, fontSize: 15, marginBottom: '0.375rem', marginLeft: 'auto' }}>
+              {m.away_team?.name?.charAt(0)}
+            </div>
+            <p style={{ color: '#fff', fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.away_team?.name}</p>
+          </div>
+        </div>
+
+        {/* Meta */}
+        <div style={{ display: 'flex', gap: '0.875rem', paddingTop: '0.875rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'rgba(255,255,255,0.3)', fontSize: 11 }}>
+            <MapPin size={10} /> {m.commune}
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'rgba(255,255,255,0.3)', fontSize: 11 }}>
+            <Calendar size={10} /> {formatDate(m.scheduled_at)}
+          </span>
+        </div>
+      </div>
+    </Link>
+  )
 }
 
 export default function Partidos() {
@@ -27,27 +82,23 @@ export default function Partidos() {
 
   return (
     <AppLayout>
-      <div className="flex items-center justify-between mb-8">
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h1 className="text-3xl font-bold text-white mb-1">Partidos abiertos</h1>
-          <p className="text-white/40">Encuentra un rival o publica tu propio partido.</p>
+          <h1 style={{ fontSize: 26, fontWeight: 700, color: '#fff', letterSpacing: '-0.5px', marginBottom: '0.25rem' }}>Partidos abiertos</h1>
+          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 14 }}>Equipos buscando rival ahora mismo</p>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex gap-3 mb-6">
-        <select
-          value={filters.sport_id}
-          onChange={e => setFilters(f => ({ ...f, sport_id: e.target.value }))}
-          className="bg-white/5 border border-white/10 text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#84cc16]/50"
+      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.75rem', flexWrap: 'wrap' }}>
+        <select value={filters.sport_id} onChange={e => setFilters(f => ({ ...f, sport_id: e.target.value }))}
+          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.625rem', padding: '0.625rem 1rem', color: filters.sport_id ? '#fff' : 'rgba(255,255,255,0.45)', fontSize: 13, outline: 'none' }}
         >
           <option value="">Todos los deportes</option>
           {sports.map(s => <option key={s.id} value={s.id}>{s.icon} {s.name}</option>)}
         </select>
-        <select
-          value={filters.commune}
-          onChange={e => setFilters(f => ({ ...f, commune: e.target.value }))}
-          className="bg-white/5 border border-white/10 text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#84cc16]/50"
+        <select value={filters.commune} onChange={e => setFilters(f => ({ ...f, commune: e.target.value }))}
+          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.625rem', padding: '0.625rem 1rem', color: filters.commune ? '#fff' : 'rgba(255,255,255,0.45)', fontSize: 13, outline: 'none' }}
         >
           <option value="">Todas las comunas</option>
           {communes.map(c => <option key={c} value={c}>{c}</option>)}
@@ -55,39 +106,20 @@ export default function Partidos() {
       </div>
 
       {loading ? (
-        <div className="text-white/40 text-center py-20">Cargando partidos...</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+          {[1,2,3,4].map(i => (
+            <div key={i} className="card" style={{ padding: '1.5rem', height: 200 }} />
+          ))}
+        </div>
       ) : openMatches.length === 0 ? (
-        <div className="text-center py-20">
-          <Trophy size={48} className="text-white/10 mx-auto mb-4" />
-          <p className="text-white/40">No hay partidos abiertos con esos filtros.</p>
+        <div style={{ textAlign: 'center', padding: '5rem 0' }}>
+          <Trophy size={48} color="rgba(255,255,255,0.07)" style={{ margin: '0 auto 1rem' }} />
+          <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 15, marginBottom: '0.5rem' }}>No hay partidos abiertos con esos filtros</p>
+          <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 13 }}>Intenta con otros criterios o crea tú el primero</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {openMatches.map(m => (
-            <Link key={m.id} to={`/partidos/${m.id}`}
-              className="bg-white/[0.03] border border-white/8 rounded-2xl p-6 hover:border-[#84cc16]/30 transition-colors group"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="text-3xl">{m.sport?.icon}</div>
-                <span className="bg-[#84cc16]/20 text-[#84cc16] text-xs px-2.5 py-1 rounded-full font-medium">Abierto</span>
-              </div>
-              <h3 className="text-white font-semibold mb-1 group-hover:text-[#84cc16] transition-colors">
-                {m.home_team?.name}
-              </h3>
-              <p className="text-white/50 text-sm mb-1">vs {m.away_team?.name}</p>
-              <div className="flex items-center gap-4 mt-4 text-white/30 text-xs">
-                <span className="flex items-center gap-1">
-                  <MapPin size={11} /> {m.commune}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Calendar size={11} /> {formatDate(m.scheduled_at)}
-                </span>
-              </div>
-              {m.venue && (
-                <p className="text-white/25 text-xs mt-2">{m.venue.name}</p>
-              )}
-            </Link>
-          ))}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+          {openMatches.map(m => <MatchCard key={m.id} match={m} />)}
         </div>
       )}
     </AppLayout>

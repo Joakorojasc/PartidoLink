@@ -4,11 +4,43 @@ import { MapPin, Phone, Clock } from 'lucide-react'
 import AppLayout from '../components/AppLayout'
 import api from '../api/client'
 
-const communes = ['Providencia', 'Las Condes', 'Ñuñoa', 'Santiago Centro', 'Vitacura', 'La Florida', 'Macul', 'San Miguel', 'Peñalolén', 'Lo Barnechea']
+const communes = ['Providencia','Las Condes','Ñuñoa','Santiago Centro','Vitacura','La Florida','Macul','San Miguel','Peñalolén','Lo Barnechea']
 
 function formatCLP(n) {
-  if (!n) return 'Consultar precio'
+  if (!n) return 'Consultar'
   return '$' + n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + '/hr'
+}
+
+function VenueCard({ venue: v }) {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <Link to={`/canchas/${v.id}`} style={{ textDecoration: 'none' }}>
+      <div
+        className="card card-green"
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{ overflow: 'hidden', transition: 'transform 0.18s, border-color 0.18s', transform: hovered ? 'translateY(-3px)' : 'translateY(0)' }}
+      >
+        {/* Image / Icon area */}
+        <div style={{ height: 120, background: `linear-gradient(135deg, rgba(20,83,45,0.6) 0%, rgba(10,10,10,0.8) 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, position: 'relative' }}>
+          {v.sport?.icon || '🏟️'}
+          <div style={{ position: 'absolute', bottom: '0.75rem', right: '0.75rem', background: 'rgba(0,0,0,0.5)', borderRadius: 99, padding: '0.25rem 0.625rem', fontSize: 11, fontWeight: 700, color: '#84cc16' }}>
+            {formatCLP(v.price_per_hour)}
+          </div>
+        </div>
+
+        <div style={{ padding: '1.125rem' }}>
+          <h3 style={{ color: hovered ? '#84cc16' : '#fff', fontSize: 14, fontWeight: 600, marginBottom: '0.375rem', transition: 'color 0.15s', lineHeight: 1.3 }}>
+            {v.name}
+          </h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: '0.25rem' }}>
+            <MapPin size={10} /> {v.commune}, {v.city}
+          </div>
+          <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: 11 }}>{v.sport?.name}</p>
+        </div>
+      </div>
+    </Link>
+  )
 }
 
 export default function Canchas() {
@@ -26,84 +58,41 @@ export default function Canchas() {
     const params = {}
     if (filters.sport_id) params.sport_id = filters.sport_id
     if (filters.commune) params.commune = filters.commune
-    api.get('/venues', { params }).then(r => {
-      setVenues(r.data)
-      setLoading(false)
-    }).catch(() => setLoading(false))
+    api.get('/venues', { params }).then(r => { setVenues(r.data); setLoading(false) }).catch(() => setLoading(false))
   }, [filters])
 
   return (
     <AppLayout>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-1">Canchas</h1>
-        <p className="text-white/40">Encuentra y reserva canchas deportivas en Santiago.</p>
+      <div style={{ marginBottom: '2rem' }}>
+        <h1 style={{ fontSize: 26, fontWeight: 700, color: '#fff', letterSpacing: '-0.5px', marginBottom: '0.25rem' }}>Canchas</h1>
+        <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 14 }}>Instalaciones deportivas en Santiago</p>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-3 mb-6">
-        <select
-          value={filters.sport_id}
-          onChange={e => setFilters(f => ({ ...f, sport_id: e.target.value }))}
-          className="bg-white/5 border border-white/10 text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#84cc16]/50"
-        >
-          <option value="">Todos los deportes</option>
-          {sports.map(s => <option key={s.id} value={s.id}>{s.icon} {s.name}</option>)}
-        </select>
-        <select
-          value={filters.commune}
-          onChange={e => setFilters(f => ({ ...f, commune: e.target.value }))}
-          className="bg-white/5 border border-white/10 text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#84cc16]/50"
-        >
-          <option value="">Todas las comunas</option>
-          {communes.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
+      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.75rem', flexWrap: 'wrap' }}>
+        {[
+          { key: 'sport_id', placeholder: 'Todos los deportes', options: sports.map(s => ({ value: s.id, label: `${s.icon} ${s.name}` })) },
+          { key: 'commune', placeholder: 'Todas las comunas', options: communes.map(c => ({ value: c, label: c })) },
+        ].map(f => (
+          <select key={f.key} value={filters[f.key]} onChange={e => setFilters(p => ({ ...p, [f.key]: e.target.value }))}
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.625rem', padding: '0.625rem 1rem', color: filters[f.key] ? '#fff' : 'rgba(255,255,255,0.45)', fontSize: 13, outline: 'none' }}
+          >
+            <option value="">{f.placeholder}</option>
+            {f.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
+        ))}
       </div>
 
       {loading ? (
-        <div className="text-white/40 text-center py-20">Cargando canchas...</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1rem' }}>
+          {[1,2,3,4,5,6].map(i => <div key={i} className="card" style={{ height: 200 }} />)}
+        </div>
       ) : venues.length === 0 ? (
-        <div className="text-white/40 text-center py-20">No se encontraron canchas con esos filtros.</div>
+        <div style={{ textAlign: 'center', padding: '5rem 0' }}>
+          <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 15 }}>No se encontraron canchas</p>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {venues.map(v => (
-            <Link key={v.id} to={`/canchas/${v.id}`}
-              className="bg-white/[0.03] border border-white/8 rounded-2xl overflow-hidden hover:border-[#84cc16]/30 transition-colors group"
-            >
-              {/* Image placeholder */}
-              <div className="h-40 bg-gradient-to-br from-[#14532d]/40 to-[#0a0a0a] flex items-center justify-center text-5xl">
-                {v.sport?.icon || '🏟️'}
-              </div>
-
-              <div className="p-5">
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="text-white font-semibold group-hover:text-[#84cc16] transition-colors leading-tight">
-                    {v.name}
-                  </h3>
-                  <span className="text-[#84cc16] font-bold text-sm whitespace-nowrap ml-2">
-                    {formatCLP(v.price_per_hour)}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-1 text-white/40 text-xs mb-1">
-                  <MapPin size={11} />
-                  {v.commune}, {v.city}
-                </div>
-
-                {v.address && (
-                  <p className="text-white/30 text-xs">{v.address}</p>
-                )}
-
-                <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
-                  <span className="text-white/30 text-xs">{v.sport?.icon} {v.sport?.name}</span>
-                  {v.phone && (
-                    <span className="flex items-center gap-1 text-white/30 text-xs">
-                      <Phone size={10} /> {v.phone}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </Link>
-          ))}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1rem' }}>
+          {venues.map(v => <VenueCard key={v.id} venue={v} />)}
         </div>
       )}
     </AppLayout>

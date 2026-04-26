@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { MapPin, Phone, Globe, ArrowLeft, Calendar } from 'lucide-react'
+import { MapPin, Phone, Globe, ArrowLeft, Calendar, ChevronRight } from 'lucide-react'
 import AppLayout from '../components/AppLayout'
 import api from '../api/client'
 
@@ -15,101 +15,101 @@ export default function CanchaDetalle() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    api.get(`/venues/${id}`)
-      .then(r => { setVenue(r.data); setLoading(false) })
-      .catch(() => setLoading(false))
+    api.get(`/venues/${id}`).then(r => { setVenue(r.data); setLoading(false) }).catch(() => setLoading(false))
   }, [id])
 
-  if (loading) return <AppLayout><div className="text-white/40 text-center py-20">Cargando cancha...</div></AppLayout>
-  if (!venue) return <AppLayout><div className="text-white/40 text-center py-20">Cancha no encontrada.</div></AppLayout>
+  if (loading) return <AppLayout><div style={{ textAlign: 'center', padding: '5rem', color: 'rgba(255,255,255,0.3)' }}>Cargando…</div></AppLayout>
+  if (!venue) return <AppLayout><div style={{ textAlign: 'center', padding: '5rem', color: 'rgba(255,255,255,0.3)' }}>Cancha no encontrada.</div></AppLayout>
 
   return (
     <AppLayout>
-      <Link to="/canchas" className="flex items-center gap-2 text-white/40 hover:text-white text-sm mb-6 transition-colors">
-        <ArrowLeft size={15} /> Volver a canchas
+      <Link to="/canchas" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', color: 'rgba(255,255,255,0.35)', fontSize: 13, textDecoration: 'none', marginBottom: '1.5rem', transition: 'color 0.15s' }}
+        onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+        onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.35)'}
+      >
+        <ArrowLeft size={14} /> Volver a canchas
       </Link>
 
-      <div className="grid grid-cols-3 gap-6">
-        <div className="col-span-2 space-y-6">
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '1.5rem', alignItems: 'start' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           {/* Hero */}
-          <div className="h-64 bg-gradient-to-br from-[#14532d]/40 to-[#111111] rounded-2xl flex items-center justify-center text-8xl border border-white/5">
+          <div style={{ height: 220, background: `linear-gradient(135deg, rgba(20,83,45,0.5) 0%, rgba(10,10,10,0.9) 100%)`, borderRadius: '1rem', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 72 }}>
             {venue.sport?.icon || '🏟️'}
           </div>
 
-          {/* Info */}
-          <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-8">
-            <div className="flex items-start justify-between mb-4">
+          {/* Info card */}
+          <div className="card" style={{ padding: '1.75rem' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '1rem', gap: '1rem', flexWrap: 'wrap' }}>
               <div>
-                <h1 className="text-2xl font-bold text-white mb-1">{venue.name}</h1>
-                <div className="flex items-center gap-2 text-white/50 text-sm">
-                  <span>{venue.sport?.icon} {venue.sport?.name}</span>
-                  <span>·</span>
-                  <span className="flex items-center gap-1"><MapPin size={12} /> {venue.commune}, {venue.city}</span>
+                <h1 style={{ fontSize: 22, fontWeight: 700, color: '#fff', letterSpacing: '-0.25px', marginBottom: '0.5rem' }}>{venue.name}</h1>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                  <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    {venue.sport?.icon} {venue.sport?.name}
+                  </span>
+                  <span style={{ color: 'rgba(255,255,255,0.2)' }}>·</span>
+                  <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    <MapPin size={12} /> {venue.commune}, {venue.city}
+                  </span>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-3xl font-extrabold text-[#84cc16]">{formatCLP(venue.price_per_hour)}</div>
-                <div className="text-white/40 text-xs">por hora</div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: 26, fontWeight: 800, color: '#84cc16', letterSpacing: '-0.5px' }}>{formatCLP(venue.price_per_hour)}</div>
+                <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>por hora</div>
               </div>
             </div>
 
             {venue.address && (
-              <p className="text-white/40 text-sm mb-4 flex items-center gap-2">
-                <MapPin size={14} /> {venue.address}
-              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'rgba(255,255,255,0.35)', fontSize: 13, marginBottom: '1rem' }}>
+                <MapPin size={13} /> {venue.address}
+              </div>
             )}
 
             {venue.description && (
-              <p className="text-white/60 text-sm leading-relaxed">{venue.description}</p>
+              <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 14, lineHeight: 1.7, marginBottom: '1rem' }}>{venue.description}</p>
             )}
 
-            <div className="flex gap-4 mt-6 pt-6 border-t border-white/5">
+            <div style={{ display: 'flex', gap: '1.5rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.06)', flexWrap: 'wrap' }}>
               {venue.phone && (
-                <a href={`tel:${venue.phone}`}
-                  className="flex items-center gap-2 text-white/50 hover:text-white text-sm transition-colors"
+                <a href={`tel:${venue.phone}`} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'rgba(255,255,255,0.4)', fontSize: 13, textDecoration: 'none', transition: 'color 0.15s' }}
+                  onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.4)'}
                 >
-                  <Phone size={15} /> {venue.phone}
+                  <Phone size={13} /> {venue.phone}
                 </a>
               )}
               {venue.website && (
-                <a href={venue.website} target="_blank" rel="noreferrer"
-                  className="flex items-center gap-2 text-white/50 hover:text-[#84cc16] text-sm transition-colors"
+                <a href={venue.website} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'rgba(255,255,255,0.4)', fontSize: 13, textDecoration: 'none', transition: 'color 0.15s' }}
+                  onMouseEnter={e => e.currentTarget.style.color = '#84cc16'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.4)'}
                 >
-                  <Globe size={15} /> Sitio web
+                  <Globe size={13} /> Sitio web
                 </a>
               )}
             </div>
           </div>
         </div>
 
-        {/* Booking CTA */}
-        <div className="space-y-4">
-          <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-6 sticky top-8">
-            <h2 className="text-white font-semibold mb-4">Reservar esta cancha</h2>
-            <div className="space-y-3 mb-6">
-              <div className="flex justify-between text-sm">
-                <span className="text-white/50">Precio por hora</span>
-                <span className="text-white font-medium">{formatCLP(venue.price_per_hour)}</span>
+        {/* Booking sidebar */}
+        <div className="card" style={{ padding: '1.5rem', position: 'sticky', top: '2rem' }}>
+          <h2 style={{ color: '#fff', fontWeight: 600, fontSize: 16, marginBottom: '1.25rem' }}>Reservar cancha</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
+            {[
+              { label: 'Precio por hora', value: formatCLP(venue.price_per_hour) },
+              { label: 'Deporte', value: `${venue.sport?.icon} ${venue.sport?.name}` },
+              { label: 'Ubicación', value: venue.commune },
+            ].map(row => (
+              <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>{row.label}</span>
+                <span style={{ color: '#fff', fontSize: 13, fontWeight: 500 }}>{row.value}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-white/50">Deporte</span>
-                <span className="text-white">{venue.sport?.icon} {venue.sport?.name}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-white/50">Ubicación</span>
-                <span className="text-white">{venue.commune}</span>
-              </div>
-            </div>
-            <Link to="/dashboard"
-              className="w-full flex items-center justify-center gap-2 bg-[#84cc16] text-[#14532d] py-3 rounded-xl font-bold text-sm hover:bg-[#a3e635] transition-colors"
-            >
-              <Calendar size={15} />
-              Solicitar reserva
-            </Link>
-            <p className="text-white/25 text-xs text-center mt-3">
-              Contacta al recinto para confirmar disponibilidad
-            </p>
+            ))}
           </div>
+          <Link to="/dashboard" className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
+            <Calendar size={14} /> Solicitar reserva
+          </Link>
+          <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 11, textAlign: 'center', marginTop: '0.875rem', lineHeight: 1.5 }}>
+            Contacta al recinto para confirmar disponibilidad y horarios
+          </p>
         </div>
       </div>
     </AppLayout>

@@ -1,12 +1,20 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Zap } from 'lucide-react'
+import { Zap, ArrowRight, CheckCircle } from 'lucide-react'
 import useAuthStore from '../stores/authStore'
+
+const Field = ({ label, type = 'text', value, onChange, placeholder, required }) => (
+  <div style={{ marginBottom: '1rem' }}>
+    <label style={{ display: 'block', color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: 500, marginBottom: '0.5rem' }}>{label}</label>
+    <input type={type} value={value} onChange={onChange} placeholder={placeholder} required={required} className="input" />
+  </div>
+)
 
 export default function Registro() {
   const [form, setForm] = useState({ name: '', email: '', rut: '', phone: '', password: '', password_confirmation: '' })
   const { signup, loading } = useAuthStore()
   const [errors, setErrors] = useState([])
+  const [success, setSuccess] = useState(false)
   const navigate = useNavigate()
 
   const set = (key, val) => setForm(f => ({ ...f, [key]: val }))
@@ -16,95 +24,72 @@ export default function Registro() {
     setErrors([])
     const result = await signup(form)
     if (result.success) {
-      navigate('/login')
+      setSuccess(true)
+      setTimeout(() => navigate('/login'), 1800)
     } else {
       setErrors(result.errors || ['Error al crear cuenta'])
     }
   }
 
+  if (success) return (
+    <div style={{ minHeight: '100vh', background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ textAlign: 'center' }} className="fade-up">
+        <div style={{ width: 64, height: 64, background: 'rgba(132,204,22,0.15)', border: '1px solid rgba(132,204,22,0.3)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem' }}>
+          <CheckCircle size={30} color="#84cc16" />
+        </div>
+        <h2 style={{ color: '#fff', fontSize: 22, fontWeight: 700, marginBottom: '0.5rem' }}>¡Cuenta creada!</h2>
+        <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14 }}>Redirigiendo al login…</p>
+      </div>
+    </div>
+  )
+
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="w-9 h-9 bg-[#84cc16] rounded-lg flex items-center justify-center">
-              <Zap size={20} className="text-[#14532d]" />
+    <div style={{ minHeight: '100vh', background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 1.5rem', fontFamily: 'Inter, system-ui, sans-serif' }}>
+      <div style={{ width: '100%', maxWidth: 440 }} className="fade-up">
+        <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+          <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.625rem', textDecoration: 'none', marginBottom: '1.5rem' }}>
+            <div style={{ width: 38, height: 38, background: '#84cc16', borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 24px rgba(132,204,22,0.3)' }}>
+              <Zap size={20} color="#14532d" />
             </div>
-            <span className="text-white font-bold text-xl">PartidoLink</span>
+            <span style={{ color: '#fff', fontWeight: 700, fontSize: 18 }}>PartidoLink</span>
           </Link>
-          <h1 className="text-2xl font-bold text-white">Crear cuenta</h1>
-          <p className="text-white/40 mt-2 text-sm">Únete a la comunidad deportiva</p>
+          <h1 style={{ fontSize: 24, fontWeight: 700, color: '#fff', letterSpacing: '-0.5px', marginBottom: '0.375rem' }}>Crear cuenta</h1>
+          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>Únete a la comunidad deportiva de Chile</p>
         </div>
 
-        <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-8">
+        <div className="card" style={{ padding: '2rem' }}>
           {errors.length > 0 && (
-            <div className="bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg p-3 mb-5 text-sm space-y-1">
-              {errors.map((e, i) => <div key={i}>{e}</div>)}
+            <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '0.625rem', padding: '0.875rem 1rem', marginBottom: '1.25rem' }}>
+              {errors.map((e, i) => <p key={i} style={{ color: '#f87171', fontSize: 13, lineHeight: 1.5 }}>{e}</p>)}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-white/70 text-sm mb-1.5">Nombre completo</label>
-              <input
-                value={form.name} onChange={e => set('name', e.target.value)}
-                placeholder="Juan Pérez" required
-                className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-4 py-3 text-sm placeholder-white/25 focus:outline-none focus:border-[#84cc16]/50 transition-colors"
-              />
+          <form onSubmit={handleSubmit}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1rem' }}>
+              <div style={{ gridColumn: '1/-1' }}>
+                <Field label="Nombre completo" value={form.name} onChange={e => set('name', e.target.value)} placeholder="Juan Pérez" required />
+              </div>
+              <Field label="RUT chileno" value={form.rut} onChange={e => set('rut', e.target.value)} placeholder="12.345.678-9" required />
+              <Field label="Teléfono" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="+56 9 12345678" />
+              <div style={{ gridColumn: '1/-1' }}>
+                <Field label="Correo electrónico" type="email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="tu@correo.cl" required />
+              </div>
+              <Field label="Contraseña" type="password" value={form.password} onChange={e => set('password', e.target.value)} placeholder="Mínimo 6 caracteres" required />
+              <Field label="Confirmar contraseña" type="password" value={form.password_confirmation} onChange={e => set('password_confirmation', e.target.value)} placeholder="Repite tu contraseña" required />
             </div>
-            <div>
-              <label className="block text-white/70 text-sm mb-1.5">RUT chileno</label>
-              <input
-                value={form.rut} onChange={e => set('rut', e.target.value)}
-                placeholder="12.345.678-9" required
-                className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-4 py-3 text-sm placeholder-white/25 focus:outline-none focus:border-[#84cc16]/50 transition-colors"
-              />
-            </div>
-            <div>
-              <label className="block text-white/70 text-sm mb-1.5">Correo electrónico</label>
-              <input
-                type="email" value={form.email} onChange={e => set('email', e.target.value)}
-                placeholder="tu@correo.cl" required
-                className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-4 py-3 text-sm placeholder-white/25 focus:outline-none focus:border-[#84cc16]/50 transition-colors"
-              />
-            </div>
-            <div>
-              <label className="block text-white/70 text-sm mb-1.5">Teléfono</label>
-              <input
-                value={form.phone} onChange={e => set('phone', e.target.value)}
-                placeholder="+56 9 12345678"
-                className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-4 py-3 text-sm placeholder-white/25 focus:outline-none focus:border-[#84cc16]/50 transition-colors"
-              />
-            </div>
-            <div>
-              <label className="block text-white/70 text-sm mb-1.5">Contraseña</label>
-              <input
-                type="password" value={form.password} onChange={e => set('password', e.target.value)}
-                placeholder="Mínimo 6 caracteres" required
-                className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-4 py-3 text-sm placeholder-white/25 focus:outline-none focus:border-[#84cc16]/50 transition-colors"
-              />
-            </div>
-            <div>
-              <label className="block text-white/70 text-sm mb-1.5">Confirmar contraseña</label>
-              <input
-                type="password" value={form.password_confirmation} onChange={e => set('password_confirmation', e.target.value)}
-                placeholder="Repite tu contraseña" required
-                className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-4 py-3 text-sm placeholder-white/25 focus:outline-none focus:border-[#84cc16]/50 transition-colors"
-              />
-            </div>
-            <button
-              type="submit" disabled={loading}
-              className="w-full bg-[#84cc16] text-[#14532d] py-3 rounded-lg font-bold text-sm hover:bg-[#a3e635] transition-colors disabled:opacity-50 mt-2"
-            >
-              {loading ? 'Creando cuenta...' : 'Crear cuenta gratis'}
+
+            <button type="submit" disabled={loading} className="btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem', opacity: loading ? 0.6 : 1 }}>
+              {loading ? 'Creando cuenta...' : (<>Crear cuenta gratis <ArrowRight size={15} /></>)}
             </button>
           </form>
-        </div>
 
-        <p className="text-center text-white/40 text-sm mt-6">
-          ¿Ya tienes cuenta?{' '}
-          <Link to="/login" className="text-[#84cc16] hover:underline">Iniciar sesión</Link>
-        </p>
+          <div style={{ textAlign: 'center', marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13 }}>
+              ¿Ya tienes cuenta?{' '}
+              <Link to="/login" style={{ color: '#84cc16', textDecoration: 'none', fontWeight: 500 }}>Iniciar sesión</Link>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   )

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Trophy, Users, MapPin, ArrowRight, Calendar, Zap } from 'lucide-react'
+import { Trophy, Users, MapPin, ArrowRight, Calendar, TrendingUp, ChevronRight } from 'lucide-react'
 import useAuthStore from '../stores/authStore'
 import useMatchStore from '../stores/matchStore'
 import AppLayout from '../components/AppLayout'
@@ -11,74 +11,119 @@ function formatDate(dt) {
   return new Date(dt).toLocaleDateString('es-CL', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
 }
 
-function formatCLP(n) {
-  if (!n) return '-'
-  return '$' + n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+const quickActions = [
+  { to: '/partidos', icon: Trophy,   label: 'Buscar Rival',    sub: 'Matchmaking abierto',  accent: true },
+  { to: '/equipos/nuevo', icon: Users, label: 'Crear Equipo', sub: 'Sé el capitán',         accent: false },
+  { to: '/canchas',  icon: MapPin,   label: 'Ver Canchas',     sub: 'Santiago y alrededores', accent: false },
+]
+
+function SkeletonRow() {
+  return (
+    <div style={{ display: 'flex', gap: '0.875rem', padding: '0.875rem', borderRadius: '0.75rem', background: 'rgba(255,255,255,0.02)' }}>
+      <div style={{ width: 36, height: 36, borderRadius: '0.625rem', background: 'rgba(255,255,255,0.05)', flexShrink: 0 }} />
+      <div style={{ flex: 1 }}>
+        <div style={{ height: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 6, marginBottom: '0.5rem', width: '60%' }} />
+        <div style={{ height: 10, background: 'rgba(255,255,255,0.03)', borderRadius: 6, width: '40%' }} />
+      </div>
+    </div>
+  )
 }
 
 export default function Dashboard() {
   const { user, fetchMe } = useAuthStore()
-  const { openMatches, fetchOpenMatches } = useMatchStore()
+  const { openMatches, fetchOpenMatches, loading: matchLoading } = useMatchStore()
   const [teams, setTeams] = useState([])
+  const [teamsLoading, setTeamsLoading] = useState(true)
 
   useEffect(() => {
     fetchMe()
     fetchOpenMatches()
-    api.get('/teams').then(r => setTeams(r.data)).catch(() => {})
+    api.get('/teams').then(r => { setTeams(r.data); setTeamsLoading(false) }).catch(() => setTeamsLoading(false))
   }, [])
+
+  const hour = new Date().getHours()
+  const greeting = hour < 12 ? 'Buenos días' : hour < 20 ? 'Buenas tardes' : 'Buenas noches'
 
   return (
     <AppLayout>
-      {/* Welcome */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-1">
-          Hola, {user?.name?.split(' ')[0] || 'deportista'} 👋
+      {/* ── Welcome banner ── */}
+      <div style={{ marginBottom: '2rem' }}>
+        <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13, marginBottom: '0.25rem' }}>{greeting} 👋</p>
+        <h1 style={{ fontSize: 28, fontWeight: 700, color: '#fff', letterSpacing: '-0.5px' }}>
+          {user?.name?.split(' ')[0] || 'Deportista'}
         </h1>
-        <p className="text-white/40">Aquí está lo que está pasando hoy en PartidoLink.</p>
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        {[
-          { to: '/partidos', icon: Trophy, label: 'Buscar Rival', color: 'bg-[#14532d]/50 hover:bg-[#14532d]/70' },
-          { to: '/equipos/nuevo', icon: Users, label: 'Crear Equipo', color: 'bg-white/5 hover:bg-white/10' },
-          { to: '/canchas', icon: MapPin, label: 'Reservar Cancha', color: 'bg-white/5 hover:bg-white/10' },
-        ].map(a => (
-          <Link key={a.to} to={a.to}
-            className={`${a.color} border border-white/10 rounded-xl p-5 flex items-center gap-4 transition-colors`}
-          >
-            <div className="w-10 h-10 bg-[#84cc16]/10 rounded-lg flex items-center justify-center">
-              <a.icon size={20} className="text-[#84cc16]" />
+      {/* ── Quick actions ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.875rem', marginBottom: '2rem' }}>
+        {quickActions.map(a => (
+          <Link key={a.to} to={a.to} style={{ textDecoration: 'none' }}>
+            <div
+              className="card card-green"
+              style={{ padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer', transition: 'transform 0.15s, border-color 0.15s' }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.borderColor = a.accent ? 'rgba(132,204,22,0.4)' : 'rgba(255,255,255,0.15)' }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)' }}
+            >
+              <div style={{ width: 42, height: 42, borderRadius: '0.75rem', background: a.accent ? 'rgba(132,204,22,0.15)' : 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <a.icon size={19} color={a.accent ? '#84cc16' : 'rgba(255,255,255,0.6)'} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ color: '#fff', fontWeight: 600, fontSize: 14, marginBottom: '0.125rem' }}>{a.label}</p>
+                <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>{a.sub}</p>
+              </div>
+              <ChevronRight size={15} color="rgba(255,255,255,0.2)" />
             </div>
-            <span className="text-white font-medium">{a.label}</span>
-            <ArrowRight size={16} className="text-white/30 ml-auto" />
           </Link>
         ))}
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
-        {/* Open Matches */}
-        <div className="col-span-2 bg-white/[0.03] border border-white/8 rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-white font-semibold">Partidos abiertos</h2>
-            <Link to="/partidos" className="text-[#84cc16] text-sm hover:underline">Ver todos</Link>
+      {/* ── Main grid ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.25rem' }}>
+
+        {/* Open matches */}
+        <div className="card" style={{ padding: '1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+              <Trophy size={16} color="#84cc16" />
+              <h2 style={{ color: '#fff', fontWeight: 600, fontSize: 15 }}>Partidos abiertos</h2>
+            </div>
+            <Link to="/partidos" style={{ color: '#84cc16', fontSize: 12, textDecoration: 'none', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              Ver todos <ArrowRight size={12} />
+            </Link>
           </div>
-          {openMatches.length === 0 ? (
-            <p className="text-white/40 text-sm py-8 text-center">No hay partidos abiertos ahora.</p>
+
+          {matchLoading ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+              {[1,2,3].map(i => <SkeletonRow key={i} />)}
+            </div>
+          ) : openMatches.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '2.5rem 0' }}>
+              <Trophy size={32} color="rgba(255,255,255,0.08)" style={{ margin: '0 auto 0.75rem' }} />
+              <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13 }}>No hay partidos abiertos ahora.</p>
+            </div>
           ) : (
-            <div className="space-y-3">
-              {openMatches.slice(0, 5).map(m => (
-                <Link key={m.id} to={`/partidos/${m.id}`}
-                  className="flex items-center gap-4 p-4 bg-white/3 hover:bg-white/6 rounded-xl transition-colors"
-                >
-                  <div className="text-2xl">{m.sport?.icon || '⚽'}</div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white text-sm font-medium truncate">
-                      {m.home_team?.name} vs {m.away_team?.name}
-                    </p>
-                    <p className="text-white/40 text-xs">{m.commune} · {formatDate(m.scheduled_at)}</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              {openMatches.slice(0, 6).map(m => (
+                <Link key={m.id} to={`/partidos/${m.id}`} style={{ textDecoration: 'none' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', padding: '0.875rem', borderRadius: '0.75rem', transition: 'background 0.15s', cursor: 'pointer' }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <div style={{ width: 38, height: 38, borderRadius: '0.625rem', background: 'rgba(20,83,45,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>
+                      {m.sport?.icon || '⚽'}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ color: '#fff', fontSize: 13, fontWeight: 500, marginBottom: '0.125rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {m.home_team?.name} <span style={{ color: 'rgba(255,255,255,0.3)' }}>vs</span> {m.away_team?.name}
+                      </p>
+                      <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11 }}>
+                        {m.commune} · {formatDate(m.scheduled_at)}
+                      </p>
+                    </div>
+                    <span className="badge-open" style={{ fontSize: 11, fontWeight: 600, padding: '0.2rem 0.625rem', borderRadius: 99, flexShrink: 0 }}>
+                      Abierto
+                    </span>
                   </div>
-                  <span className="bg-[#84cc16]/20 text-[#84cc16] text-xs px-2 py-1 rounded-full font-medium">Abierto</span>
                 </Link>
               ))}
             </div>
@@ -86,28 +131,45 @@ export default function Dashboard() {
         </div>
 
         {/* Teams */}
-        <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-white font-semibold">Equipos</h2>
-            <Link to="/equipos" className="text-[#84cc16] text-sm hover:underline">Ver todos</Link>
+        <div className="card" style={{ padding: '1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+              <Users size={16} color="#84cc16" />
+              <h2 style={{ color: '#fff', fontWeight: 600, fontSize: 15 }}>Equipos</h2>
+            </div>
+            <Link to="/equipos" style={{ color: '#84cc16', fontSize: 12, textDecoration: 'none', fontWeight: 500 }}>Ver todos</Link>
           </div>
-          <div className="space-y-3">
-            {teams.slice(0, 5).map(t => (
-              <Link key={t.id} to={`/equipos/${t.id}`}
-                className="flex items-center gap-3 p-3 bg-white/3 hover:bg-white/6 rounded-xl transition-colors"
-              >
-                <div className="w-9 h-9 bg-[#14532d] rounded-lg flex items-center justify-center text-[#84cc16] font-bold text-sm">
-                  {t.name?.charAt(0)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-white text-sm font-medium truncate">{t.name}</p>
-                  <p className="text-white/40 text-xs">{t.sport?.name} · {t.commune}</p>
-                </div>
-                {t.is_open && <span className="text-[#84cc16] text-xs">Abierto</span>}
-              </Link>
-            ))}
-          </div>
-          <Link to="/equipos/nuevo" className="mt-4 block text-center text-sm text-white/40 hover:text-white/70 transition-colors">
+
+          {teamsLoading ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              {[1,2,3,4].map(i => <SkeletonRow key={i} />)}
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+              {teams.slice(0, 6).map(t => (
+                <Link key={t.id} to={`/equipos/${t.id}`} style={{ textDecoration: 'none' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', borderRadius: '0.625rem', transition: 'background 0.15s' }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <div style={{ width: 34, height: 34, borderRadius: '0.5rem', background: 'linear-gradient(135deg,#14532d,#166534)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#84cc16', fontWeight: 700, fontSize: 13, flexShrink: 0 }}>
+                      {t.name?.charAt(0)}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ color: '#fff', fontSize: 13, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</p>
+                      <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11 }}>{t.sport?.name} · {t.commune}</p>
+                    </div>
+                    {t.is_open && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#84cc16', flexShrink: 0 }} />}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+
+          <Link to="/equipos/nuevo" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.375rem', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.3)', fontSize: 13, textDecoration: 'none', transition: 'color 0.15s' }}
+            onMouseEnter={e => e.currentTarget.style.color = '#84cc16'}
+            onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}
+          >
             + Crear equipo
           </Link>
         </div>

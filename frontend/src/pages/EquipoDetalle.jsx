@@ -1,23 +1,25 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
-import { Trophy, Star, AlertTriangle, Users, MessageCircle } from 'lucide-react'
+import { useParams, Link } from 'react-router-dom'
+import { Trophy, Star, AlertTriangle, Users, ArrowLeft, CheckCircle, Swords } from 'lucide-react'
 import AppLayout from '../components/AppLayout'
 import api from '../api/client'
 import useAuthStore from '../stores/authStore'
 
-function StatBadge({ label, value, color }) {
+function RecordBadge({ label, value, bg, color }) {
   return (
-    <div className={`text-center px-6 py-4 rounded-xl ${color}`}>
-      <div className="text-2xl font-bold text-white">{value}</div>
-      <div className="text-white/60 text-xs mt-1">{label}</div>
+    <div style={{ textAlign: 'center', padding: '1rem 1.5rem', borderRadius: '0.875rem', background: bg }}>
+      <div style={{ fontSize: 26, fontWeight: 800, color, letterSpacing: '-0.5px' }}>{value}</div>
+      <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: '0.125rem' }}>{label}</div>
     </div>
   )
 }
 
 function formatDate(dt) {
-  if (!dt) return 'Por confirmar'
+  if (!dt) return '—'
   return new Date(dt).toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' })
 }
+
+const tabs = [['validated','✓ Validados'],['all','Todos'],['disputed','⚠ Disputados']]
 
 export default function EquipoDetalle() {
   const { id } = useParams()
@@ -26,84 +28,98 @@ export default function EquipoDetalle() {
   const [stats, setStats] = useState(null)
   const [matches, setMatches] = useState([])
   const [tab, setTab] = useState('validated')
-  const [ratings, setRatings] = useState([])
   const [loading, setLoading] = useState(true)
+  const [joining, setJoining] = useState(false)
+  const [joined, setJoined] = useState(false)
 
   useEffect(() => {
     setLoading(true)
     Promise.all([
       api.get(`/teams/${id}`),
       api.get(`/teams/${id}/stats`),
-      api.get(`/teams/${id}/matches`, { params: { filter: tab } })
-    ]).then(([teamRes, statsRes, matchRes]) => {
-      setTeam(teamRes.data)
-      setStats(statsRes.data)
-      setMatches(matchRes.data)
-      setLoading(false)
-    }).catch(() => setLoading(false))
+      api.get(`/teams/${id}/matches`, { params: { filter: 'validated' } }),
+    ]).then(([t, s, m]) => { setTeam(t.data); setStats(s.data); setMatches(m.data); setLoading(false) })
+      .catch(() => setLoading(false))
   }, [id])
 
   useEffect(() => {
-    api.get(`/teams/${id}/matches`, { params: { filter: tab } })
-      .then(r => setMatches(r.data))
-      .catch(() => {})
+    if (!loading) {
+      api.get(`/teams/${id}/matches`, { params: { filter: tab } }).then(r => setMatches(r.data)).catch(() => {})
+    }
   }, [tab])
 
   const handleJoin = async () => {
-    await api.post(`/teams/${id}/join`)
-    alert('¡Te uniste al equipo!')
+    setJoining(true)
+    try { await api.post(`/teams/${id}/join`); setJoined(true) } catch {}
+    setJoining(false)
   }
 
-  if (loading) return <AppLayout><div className="text-white/40 text-center py-20">Cargando...</div></AppLayout>
-  if (!team) return <AppLayout><div className="text-white/40 text-center py-20">Equipo no encontrado.</div></AppLayout>
+  if (loading) return <AppLayout><div style={{ textAlign: 'center', padding: '5rem', color: 'rgba(255,255,255,0.3)' }}>Cargando equipo…</div></AppLayout>
+  if (!team) return <AppLayout><div style={{ textAlign: 'center', padding: '5rem', color: 'rgba(255,255,255,0.3)' }}>Equipo no encontrado.</div></AppLayout>
 
   const isMember = user && team.members?.some(m => m.id === user.id)
 
   return (
     <AppLayout>
-      {/* Header */}
-      <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-8 mb-6">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-5">
-            <div className="w-16 h-16 bg-[#14532d] rounded-2xl flex items-center justify-center text-[#84cc16] font-bold text-2xl">
+      <Link to="/equipos" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', color: 'rgba(255,255,255,0.35)', fontSize: 13, textDecoration: 'none', marginBottom: '1.5rem', transition: 'color 0.15s' }}
+        onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+        onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.35)'}
+      >
+        <ArrowLeft size={14} /> Volver a equipos
+      </Link>
+
+      {/* ── Header ── */}
+      <div className="card" style={{ padding: '2rem', marginBottom: '1.25rem' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1.5rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ width: 60, height: 60, borderRadius: '1rem', background: 'linear-gradient(135deg,#14532d,#166534)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#84cc16', fontWeight: 800, fontSize: 26, flexShrink: 0 }}>
               {team.name?.charAt(0)}
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white mb-1">{team.name}</h1>
-              <div className="flex items-center gap-3 text-white/50 text-sm">
-                <span>{team.sport?.icon} {team.sport?.name}</span>
-                <span>·</span>
-                <span>{team.commune}</span>
-                {team.is_open && <span className="bg-[#84cc16]/20 text-[#84cc16] text-xs px-2 py-1 rounded-full">Abierto</span>}
+              <h1 style={{ fontSize: 22, fontWeight: 700, color: '#fff', letterSpacing: '-0.25px', marginBottom: '0.375rem' }}>{team.name}</h1>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: 13 }}>{team.sport?.icon} {team.sport?.name}</span>
+                {team.commune && <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13 }}>· {team.commune}</span>}
+                {team.is_open && <span className="badge-open" style={{ fontSize: 11, fontWeight: 600, padding: '0.2rem 0.625rem', borderRadius: 99 }}>Abierto</span>}
               </div>
-              {team.description && <p className="text-white/40 text-sm mt-2 max-w-md">{team.description}</p>}
+              {team.description && <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13, marginTop: '0.5rem', maxWidth: 500 }}>{team.description}</p>}
             </div>
           </div>
-          <div className="flex gap-2">
-            {!isMember && team.is_open && (
-              <button onClick={handleJoin}
-                className="bg-[#84cc16] text-[#14532d] px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-[#a3e635] transition-colors"
-              >
-                <Users size={15} className="inline mr-2" />
-                Unirse
-              </button>
-            )}
-          </div>
+
+          {!isMember && team.is_open && !joined && (
+            <button onClick={handleJoin} disabled={joining} className="btn-primary" style={{ opacity: joining ? 0.6 : 1 }}>
+              <Users size={14} /> {joining ? 'Uniéndose…' : 'Unirse al equipo'}
+            </button>
+          )}
+          {joined && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#84cc16', fontSize: 14 }}>
+              <CheckCircle size={16} /> ¡Te uniste!
+            </div>
+          )}
         </div>
 
         {/* Record */}
         {stats && (
-          <div className="flex gap-4 mt-6">
-            <StatBadge label="Victorias" value={stats.overall?.wins ?? 0} color="bg-green-900/30" />
-            <StatBadge label="Empates"   value={stats.overall?.draws ?? 0} color="bg-yellow-900/30" />
-            <StatBadge label="Derrotas"  value={stats.overall?.losses ?? 0} color="bg-red-900/30" />
-            <StatBadge label="Partidos"  value={stats.total_matches ?? 0} color="bg-white/5" />
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <RecordBadge label="Victorias" value={stats.overall?.wins ?? 0} bg="rgba(34,197,94,0.1)" color="#4ade80" />
+            <RecordBadge label="Empates" value={stats.overall?.draws ?? 0} bg="rgba(234,179,8,0.1)" color="#facc15" />
+            <RecordBadge label="Derrotas" value={stats.overall?.losses ?? 0} bg="rgba(239,68,68,0.1)" color="#f87171" />
+            <RecordBadge label="Partidos" value={stats.total_matches ?? 0} bg="rgba(255,255,255,0.04)" color="#fff" />
             {stats.rejection_count > 0 && (
-              <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-xl px-5 py-4">
-                <AlertTriangle size={16} className="text-red-400" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', padding: '1rem 1.5rem', borderRadius: '0.875rem', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
+                <AlertTriangle size={16} color="#f87171" />
                 <div>
-                  <div className="text-red-400 font-bold text-xl">{stats.rejection_count}</div>
-                  <div className="text-red-400/70 text-xs">Resultados rechazados</div>
+                  <div style={{ fontSize: 26, fontWeight: 800, color: '#f87171', letterSpacing: '-0.5px' }}>{stats.rejection_count}</div>
+                  <div style={{ color: 'rgba(239,68,68,0.6)', fontSize: 12 }}>Rechazados</div>
+                </div>
+              </div>
+            )}
+            {team.average_rating && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', padding: '1rem 1.5rem', borderRadius: '0.875rem', background: 'rgba(234,179,8,0.08)' }}>
+                <Star size={16} color="#facc15" />
+                <div>
+                  <div style={{ fontSize: 26, fontWeight: 800, color: '#facc15', letterSpacing: '-0.5px' }}>{team.average_rating}</div>
+                  <div style={{ color: 'rgba(234,179,8,0.6)', fontSize: 12 }}>Valoración</div>
                 </div>
               </div>
             )}
@@ -111,85 +127,81 @@ export default function EquipoDetalle() {
         )}
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
-        <div className="col-span-2">
-          {/* Match History */}
-          <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-6">
-            <h2 className="text-white font-semibold mb-4">Historial de partidos</h2>
-            <div className="flex gap-2 mb-4">
-              {[['validated', 'Validados'], ['all', 'Todos'], ['disputed', 'Disputados']].map(([val, label]) => (
-                <button key={val} onClick={() => setTab(val)}
-                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                    tab === val ? 'bg-[#14532d] text-[#84cc16]' : 'text-white/40 hover:text-white'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: '1.25rem', alignItems: 'start' }}>
+        {/* Match history */}
+        <div className="card" style={{ padding: '1.5rem' }}>
+          <h2 style={{ color: '#fff', fontWeight: 600, fontSize: 15, marginBottom: '1rem' }}>Historial de partidos</h2>
+          <div style={{ display: 'flex', gap: '0.375rem', marginBottom: '1.25rem' }}>
+            {tabs.map(([val, label]) => (
+              <button key={val} onClick={() => setTab(val)}
+                style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: tab === val ? 600 : 400, background: tab === val ? 'rgba(20,83,45,0.5)' : 'transparent', color: tab === val ? '#84cc16' : 'rgba(255,255,255,0.4)', transition: 'background 0.15s, color 0.15s' }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {matches.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '3rem 0' }}>
+              <Swords size={32} color="rgba(255,255,255,0.07)" style={{ margin: '0 auto 0.75rem' }} />
+              <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: 13 }}>Sin partidos en esta categoría</p>
             </div>
-            {matches.length === 0 ? (
-              <p className="text-white/30 text-sm py-8 text-center">Sin partidos en esta categoría.</p>
-            ) : (
-              <div className="space-y-3">
-                {matches.map(m => (
-                  <div key={m.id} className="flex items-center justify-between p-4 bg-white/3 rounded-xl">
-                    <div>
-                      <p className="text-white text-sm font-medium">
-                        {m.home_team?.name} vs {m.away_team?.name}
-                      </p>
-                      <p className="text-white/40 text-xs">{formatDate(m.scheduled_at)} · {m.sport?.name}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {m.results?.[0] && (
-                        <span className="text-white font-bold text-sm">
-                          {m.results[0].home_score} - {m.results[0].away_score}
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              {matches.map(m => {
+                const result = m.results?.[0]
+                return (
+                  <Link key={m.id} to={`/partidos/${m.id}`} style={{ textDecoration: 'none' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.875rem', borderRadius: '0.75rem', transition: 'background 0.15s' }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ color: '#fff', fontSize: 13, fontWeight: 500, marginBottom: '0.125rem' }}>
+                          {m.home_team?.name} <span style={{ color: 'rgba(255,255,255,0.3)' }}>vs</span> {m.away_team?.name}
+                        </p>
+                        <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11 }}>{formatDate(m.scheduled_at)} · {m.sport?.name}</p>
+                      </div>
+                      {result && (
+                        <span style={{ color: '#fff', fontWeight: 700, fontSize: 15, flexShrink: 0 }}>
+                          {result.home_score} – {result.away_score}
                         </span>
                       )}
-                      <span className={`text-xs px-2 py-1 rounded-full ${
-                        m.status === 'played' ? 'bg-green-900/30 text-green-400' :
-                        m.status === 'disputed' ? 'bg-red-900/30 text-red-400' :
-                        'bg-white/10 text-white/50'
-                      }`}>
-                        {m.status === 'played' ? 'Validado' : m.status === 'disputed' ? 'Disputado' : 'Programado'}
+                      <span className={m.status === 'played' ? 'badge-played' : m.status === 'disputed' ? 'badge-disp' : 'badge-sched'} style={{ fontSize: 11, fontWeight: 600, padding: '0.2rem 0.625rem', borderRadius: 99, flexShrink: 0 }}>
+                        {m.status === 'played' ? '✓ Validado' : m.status === 'disputed' ? '⚠ Disputado' : 'Programado'}
                       </span>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+                  </Link>
+                )
+              })}
+            </div>
+          )}
         </div>
 
         {/* Roster */}
-        <div className="space-y-4">
-          <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-6">
-            <h2 className="text-white font-semibold mb-4">Plantilla</h2>
-            <div className="space-y-3">
-              {team.members?.map(m => (
-                <div key={m.id} className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-[#14532d]/50 rounded-full flex items-center justify-center text-[#84cc16] text-xs font-bold">
-                    {m.name?.charAt(0)}
+        <div className="card" style={{ padding: '1.5rem' }}>
+          <h2 style={{ color: '#fff', fontWeight: 600, fontSize: 15, marginBottom: '1rem' }}>
+            Plantilla · {team.members?.length || 0} jugadores
+          </h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+            {team.members?.map(m => {
+              const isCaptain = m.id === team.captain?.id
+              return (
+                <Link key={m.id} to={`/perfil/${m.id}`} style={{ textDecoration: 'none' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', padding: '0.625rem 0.5rem', borderRadius: '0.5rem', transition: 'background 0.15s' }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: isCaptain ? 'linear-gradient(135deg,#14532d,#166534)' : 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isCaptain ? '#84cc16' : 'rgba(255,255,255,0.5)', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
+                      {m.name?.charAt(0)}
+                    </div>
+                    <span style={{ color: '#fff', fontSize: 13, flex: 1 }}>{m.name?.split(' ')[0]}</span>
+                    {isCaptain && <span style={{ fontSize: 10, color: '#84cc16', fontWeight: 600 }}>CAP</span>}
                   </div>
-                  <span className="text-white text-sm">{m.name}</span>
-                  {m.id === team.captain?.id && (
-                    <span className="text-xs text-[#84cc16] ml-auto">Capitán</span>
-                  )}
-                </div>
-              ))}
-            </div>
+                </Link>
+              )
+            })}
           </div>
-
-          {/* Avg rating */}
-          {team.average_rating && (
-            <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-6">
-              <h2 className="text-white font-semibold mb-3">Valoración</h2>
-              <div className="flex items-center gap-2">
-                <Star size={20} className="text-yellow-400 fill-yellow-400" />
-                <span className="text-white text-2xl font-bold">{team.average_rating}</span>
-                <span className="text-white/40 text-sm">/ 5</span>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </AppLayout>
